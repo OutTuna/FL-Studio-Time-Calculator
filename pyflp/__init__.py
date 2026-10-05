@@ -29,6 +29,8 @@ Full docs are available at https://pyflp.rtfd.io.
 
 from __future__ import annotations
 
+from typing import BinaryIO
+
 import io
 import os
 import pathlib
@@ -69,7 +71,7 @@ if sys.version_info < (3, 11):  # https://github.com/Bobronium/fastenum/issues/2
     fastenum.enable()  # 33% faster parse()
 
 
-def parse(file: pathlib.Path | str) -> Project:
+def parse(file: pathlib.Path | str | BinaryIO) -> Project:
     """Parses an FL Studio project file and returns a parsed :class:`Project`.
 
     Args:
@@ -80,8 +82,11 @@ def parse(file: pathlib.Path | str) -> Project:
         VersionNotDetected: A correct string type couldn't be determined.
     """
     cur_time = time.time()
-    with open(file, "rb") as flp:
-        stream = io.BytesIO(flp.read())
+    if hasattr(file, "read"):
+        stream = io.BytesIO(file.read())
+    else:
+        with open(file, "rb") as flp:
+            stream = io.BytesIO(flp.read())
     
     events: list[AnyEvent] = []
     header = stream.read(FLP_HEADER.size)
@@ -120,7 +125,7 @@ def parse(file: pathlib.Path | str) -> Project:
     plug_name = None
     str_type: type[AsciiEvent] | type[UnicodeEvent] | None = None
     stream.seek(22)  # Back to start of events
-    while stream.tell() < 1000:
+    while stream.tell() < file_size:
         event_type: type[AnyEvent] | None = None
         id = EventEnum(int.from_bytes(stream.read(1), "little"))
 

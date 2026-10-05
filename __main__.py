@@ -8,11 +8,12 @@
 #   PySide6
 
 import sys, os, datetime
-from PySide6.QtWidgets import QAbstractItemView, QTabWidget, QLabel, QSplitter ,QApplication, QMainWindow, QToolButton, QDateEdit, QVBoxLayout, QHBoxLayout, QWidget, QFileDialog, QTreeWidget, QTreeWidgetItem, QGroupBox
+from PySide6.QtWidgets import QMessageBox, QAbstractItemView, QTabWidget, QLabel, QSplitter ,QApplication, QMainWindow, QToolButton, QDateEdit, QVBoxLayout, QHBoxLayout, QWidget, QFileDialog, QTreeWidget, QTreeWidgetItem, QGroupBox
 from PySide6.QtCore import QDateTime, Qt
 import pyqtgraph as pg
 from filetree import CustomTree
 from flpobject import FLP_Object
+from project_sources import discover_projects
 
 # Local clone of pyflp library used
 import pyflp
@@ -31,7 +32,7 @@ class Window(QMainWindow):
         self.setWindowTitle("FL Studio Time Calculator")
         window_size = QApplication.primaryScreen().availableSize()
         self.resize(window_size)    # Set app to size of screen
-        self.resize(window_size.width()*0.85,window_size.height()*0.85)    # Set app to size of screen
+        self.resize(int(window_size.width()*0.85),int(window_size.height()*0.85))    # Set app to size of screen
 
         self.flp_objects = []   # Empty list to fold FLP_Object()'s
         self.load_state = False
@@ -148,7 +149,7 @@ class Window(QMainWindow):
         # Set Main Layout
         self.SectionDivider.addWidget(self.Lwidget)
         self.SectionDivider.addWidget(self.Rwidget)
-        self.SectionDivider.setSizes([self.width()*.30,self.width()*.70]) # Set sections to 25% and 75% screen width
+        self.SectionDivider.setSizes([int(self.width()*.30),int(self.width()*.70)]) # Set sections to 25% and 75% screen width
         self.filetree.tree.header().resizeSection(0,int(self.width()*.12))
         self.filelist.tree.header().resizeSection(0,int(self.width()*.12))
         self.filetree.tree.header().setMinimumSectionSize(int(self.width()*.05))
@@ -219,7 +220,11 @@ class Window(QMainWindow):
     def load_folders(self):
         path = QFileDialog().getExistingDirectory(self, 'Select a directory')
         if(path):
-            filepaths_full, filepaths_relative_dir = self.walk(path)  # Returns FLPFile struct Object
+            sources, errors = discover_projects(path)
+            filepaths_full = sources
+            filepaths_relative_dir = [source.relative_path for source in sources]
+            if errors:
+                QMessageBox.warning(self, "Import warnings", "\n".join(errors))  # Returns FLPFile struct Object
             if len(filepaths_full) > 0:   # If project(s) found
                 self.load_state = True
                 for full_path, relative_path in zip(filepaths_full, filepaths_relative_dir):
@@ -244,7 +249,7 @@ class Window(QMainWindow):
         x_nselected = []
         y_nselected = []
         for project in self.flp_objects:
-            if project.check_state == Qt.CheckState.Checked:
+            if project.creation_date is not None and project.check_state == Qt.CheckState.Checked:
                 if project.tree_item.isSelected():
                     x_selected.append(project.creation_date)
                     y_selected.append(project.project_hours)
@@ -286,24 +291,8 @@ class Window(QMainWindow):
     # Fast search of selected root directory and sub-directories
     # Output nexted array in compress filepath form 
     def walk(self, path: str):
-        filepath_full = []          # FULL path directory for importing
-        filepath_relative_dir = []  # Relative directory for file tree
-        root_folder_name = path.split(os.sep)[-1]
-        update_process_counter = 0
-        for p, _, f in os.walk(path):
-            for file in f:
-                if file.endswith('.flp') and "autosave" not in file and "overwritten" not in file:
-                    full_path = os.path.join(p,file)
-                    flp_path_string = os.path.relpath(full_path,path)
-                    flp_path_string = os.path.join(root_folder_name,flp_path_string)
-                    filepath_relative_dir.append(flp_path_string)
-                    filepath_full.append(full_path)
-                update_process_counter += 1
-                if update_process_counter >= 1000:  # Must update process when searching through deep heiarchy
-                    QApplication.processEvents()    # Update in future to custom loading screen
-                    update_process_counter = 0
-
-        return filepath_full, filepath_relative_dir  # Return list
+        sources, _ = discover_projects(path)
+        return sources, [source.relative_path for source in sources]
 
 
 if __name__ == '__main__':

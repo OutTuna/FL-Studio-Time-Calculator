@@ -1,0 +1,7 @@
+PySide6>=6.6,<7
+pyqtgraph>=0.13,<1
+construct==2.10.70
+construct-typing>=0.5,<1
+sortedcontainers>=2.4,<3
+typing-extensions>=4.6,<5
+fastenum>=1.1,<2; python_version < "3.11"

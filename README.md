@@ -8,3 +8,38 @@ This program was created out of the primal, human urge to keep track of and gawk
 This program does not modify your save files in any way, its only allowed to read file contents.
 
 Support us at https://ko-fi.com/flhourcounterguys
+
+## Local ZIP support
+
+Import a folder to scan it and its subfolders for `.flp` and `.zip` files
+(case-insensitive). Every FLP inside a ZIP appears in the list/tree with its
+hours and creation date. Samples are not extracted and source files are not
+modified. Archives with no FLP or unreadable archives produce an import warning;
+projects that cannot be parsed appear in red with an error tooltip and do not
+contribute to totals. Individual FLPs larger than 256 MiB are rejected.
+
+Multiple versions of a project are counted separately, including copies in both
+ZIP and FLP form. Autosave/overwritten files are skipped, as in the original app.
+Nested ZIPs are not scanned. Time is FL Studio's recorded active project time,
+not audio duration or time inferred from file dates.
+
+Run locally with Python 3.11 or newer:
+
+```sh
+python3 -m venv .venv
+.venv/bin/python -m pip install -r requirements.txt
+.venv/bin/python __main__.py
+```
+
+Run checks: `QT_QPA_PLATFORM=offscreen .venv/bin/python -m unittest discover -s tests`.
+
+## Windows EXE builds
+
+GitHub Actions builds a Windows x64 EXE on every push to `main` and every pull
+request targeting `main`. You can also start it manually from **Actions → Build
+Windows EXE → Run workflow**. Tests must pass before the EXE is built.
+
+Download **FL-Studio-Time-Calculator-Windows-x64** from the successful run's
+**Artifacts** section, unzip it, and launch `FL-Studio-Time-Calculator.exe`.
+Python does not need to be installed on the Windows computer. Build artifacts
+are retained for 30 days.

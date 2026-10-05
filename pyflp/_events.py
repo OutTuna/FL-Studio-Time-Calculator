@@ -51,6 +51,14 @@ NEW_TEXT_IDS: Final = (
 
 
 class _EventEnumMeta(enum.EnumMeta):
+    def __call__(cls, value, *args, **kwargs):
+        if not cls.__members__ and not args and not kwargs:
+            member = cls._missing_(value)
+            if member is not None:
+                return member
+            raise ValueError(f"Invalid event ID: {value}")
+        return super().__call__(value, *args, **kwargs)
+
     def __contains__(self, obj: object) -> bool:
         """Whether ``obj`` is one of the integer values of enum members.
 

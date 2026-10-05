@@ -24,3 +24,7 @@ pyflp/__pycache__/__init__.cpython-310.pyc
 *.pyz
 *.exe
 *.pyc
+
+.venv/
+__pycache__/
+!requirements.txt

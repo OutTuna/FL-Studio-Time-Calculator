@@ -8,6 +8,7 @@
 #   PySide6
 
 import datetime, os
+from project_sources import ProjectSource
 from PySide6.QtWidgets import QTreeWidgetItem
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QStandardItem
@@ -19,7 +20,9 @@ import pyflp
 # Custom object to hold information about parsed song
 class FLP_Object():
     def __init__(self, file_path = None, relative_file_path = None):
-        self.file_path = file_path
+        self.source = file_path if isinstance(file_path, ProjectSource) else None
+        self.file_path = self.source.path if self.source else file_path
+        self.error = None
         self.relative_path = relative_file_path
         self.file_name = self.path_to_array(relative_file_path)[-1]
         self.creation_date = None           # datetime
@@ -38,13 +41,21 @@ class FLP_Object():
     def parse(self):
         if self.file_path:  # If file path exists
             try:    # attempt to parse file
-                temp = pyflp.parse(self.file_path)
+                if self.source:
+                    with self.source.open() as stream:
+                        temp = pyflp.parse(stream)
+                else:
+                    temp = pyflp.parse(self.file_path)
+                if temp.time_spent is None or temp.created_on is None:
+                    raise ValueError("Project has no time metadata")
                 self.project_hours = temp.time_spent/datetime.timedelta(hours=1) # Float
                 self.creation_date = temp.created_on
                 # total notes
                 # other metrics                
-            except:
+            except Exception as exc:
                 print("Error: Could not parse file ", self.file_name)
+                self.error = str(exc)
+                self.check_state = Qt.CheckState.Unchecked
                 self.project_hours = 0
 
     # Create standard item for different trees
@@ -55,6 +66,7 @@ class FLP_Object():
         else:
             self.tree_item = QTreeWidgetItem([self.file_name,"",""])
             self.tree_item.setBackground(0,Qt.GlobalColor.red)
+            self.tree_item.setToolTip(0, self.error or "Could not read project")
 
     # Update personal class state based on tree_items checkstate
     def update_state(self):

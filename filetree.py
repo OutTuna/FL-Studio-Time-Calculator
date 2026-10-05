@@ -41,28 +41,18 @@ class CustomTree():
 
     # Inserts object into file tree
     def insert_into_tree(self, flp_object: FLP_Object):
-        tree_pointer = None
-        for directory in flp_object.path_to_array(flp_object.relative_path):
-            # check for root directory
-            if self.tree.topLevelItemCount() == 0:
-                root = QTreeWidgetItem([directory,"",""])
-                root.setCheckState(0,Qt.CheckState.Checked)
-                self.tree.insertTopLevelItem(0,root)
-                tree_pointer = root
-            else:
-                matches = self.tree.findItems(directory, Qt.MatchFlag.MatchExactly|Qt.MatchFlag.MatchRecursive, column=0)
-                if len(matches) > 0:
-                    tree_pointer = matches[0]
-                else:
-                    if directory.endswith(".flp"):  # Add file
-                        tree_pointer.addChild(flp_object.tree_item)
-                        tree_pointer.setExpanded(True)
-                    else:
-                        dir = QTreeWidgetItem([directory,"",""])
-                        dir.setCheckState(0,Qt.CheckState.Checked)
-                        tree_pointer.addChild(dir)
-                        tree_pointer.setExpanded(True)
-                        tree_pointer = dir
+        parts = flp_object.path_to_array(flp_object.relative_path)
+        parent = self.tree.invisibleRootItem()
+        for directory in parts[:-1]:
+            match = next((parent.child(i) for i in range(parent.childCount())
+                          if parent.child(i).text(0) == directory), None)
+            if match is None:
+                match = QTreeWidgetItem([directory, "", ""])
+                match.setCheckState(0, Qt.CheckState.Checked)
+                parent.addChild(match)
+            parent = match
+            parent.setExpanded(True)
+        parent.addChild(flp_object.tree_item)
 
     # Compress filespaths for long paths with single children
     def compress_filepaths(self):
@@ -81,7 +71,7 @@ class CustomTree():
             return
         elif count == 1:
             # if item has children, take them and merge strings
-            if item.child(0).text(0).endswith(".flp"):
+            if item.child(0).text(0).lower().endswith(".flp"):
                 return
             else:
                 new_children = item.child(0).takeChildren()  # get childs child

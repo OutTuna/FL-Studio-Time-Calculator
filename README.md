@@ -36,10 +36,12 @@ Run checks: `QT_QPA_PLATFORM=offscreen .venv/bin/python -m unittest discover -s 
 ## Windows EXE builds
 
 GitHub Actions builds a Windows x64 EXE on every push to `main` and every pull
-request targeting `main`. You can also start it manually from **Actions → Build
+request targeting `main`. You can also start it manually from **Actions → Build and Release
 Windows EXE → Run workflow**. Tests must pass before the EXE is built.
 
-Download **FL-Studio-Time-Calculator-Windows-x64** from the successful run's
-**Artifacts** section, unzip it, and launch `FL-Studio-Time-Calculator.exe`.
-Python does not need to be installed on the Windows computer. Build artifacts
-are retained for 30 days.
+Successful builds of `main` automatically publish a new GitHub Release with the
+EXE attached and mark it as Latest. Download `FL-Studio-Time-Calculator.exe`
+from [the latest release](https://github.com/OutTuna/FL-Studio-Time-Calculator/releases/latest)
+and launch it. Python does not need to be installed on the Windows computer.
+Previous releases remain available. Pull request builds only upload artifacts
+and do not publish releases. Artifacts are retained for 30 days.

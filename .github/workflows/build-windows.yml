@@ -1,4 +1,4 @@
-name: Build Windows EXE
+name: Build and Release Windows EXE
 
 on:
   push:
@@ -9,6 +9,10 @@ on:
 
 permissions:
   contents: read
+
+concurrency:
+  group: windows-build-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   build:
@@ -39,3 +43,30 @@ jobs:
           path: dist/FL-Studio-Time-Calculator.exe
           if-no-files-found: error
           retention-days: 30
+
+  release:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      RELEASE_TAG: build-${{ github.run_number }}-${{ github.run_attempt }}
+      RELEASE_SHA: ${{ github.sha }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: FL-Studio-Time-Calculator-Windows-x64
+          path: release
+      - name: Publish release
+        shell: bash
+        run: |
+          printf 'Windows x64 build from commit %s.\n\nDownload the EXE below and launch it. Python is not required.\n' "$RELEASE_SHA" > release-notes.md
+          gh release create "$RELEASE_TAG" \
+            release/FL-Studio-Time-Calculator.exe \
+            --target "$RELEASE_SHA" \
+            --title "Windows build $RELEASE_TAG" \
+            --notes-file release-notes.md \
+            --latest

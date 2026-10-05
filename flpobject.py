@@ -9,12 +9,11 @@
 
 import datetime, os
 from project_sources import ProjectSource
+from project_metadata import read_metadata
 from PySide6.QtWidgets import QTreeWidgetItem
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QStandardItem
 
-# Local clone of pyflp library used
-import pyflp
 
 
 # Custom object to hold information about parsed song
@@ -43,9 +42,10 @@ class FLP_Object():
             try:    # attempt to parse file
                 if self.source:
                     with self.source.open() as stream:
-                        temp = pyflp.parse(stream)
+                        temp = read_metadata(stream)
                 else:
-                    temp = pyflp.parse(self.file_path)
+                    with open(self.file_path, "rb") as stream:
+                        temp = read_metadata(stream)
                 if temp.time_spent is None or temp.created_on is None:
                     raise ValueError("Project has no time metadata")
                 self.project_hours = temp.time_spent/datetime.timedelta(hours=1) # Float

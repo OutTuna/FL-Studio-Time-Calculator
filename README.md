@@ -45,3 +45,7 @@ from [the latest release](https://github.com/OutTuna/FL-Studio-Time-Calculator/r
 and launch it. Python does not need to be installed on the Windows computer.
 Previous releases remain available. Pull request builds only upload artifacts
 and do not publish releases. Artifacts are retained for 30 days.
+
+Project statistics use a metadata-only reader. It supports the extended events
+observed in FL Studio 26.1 and skips plugin, playlist, and text payloads without
+decoding them. Unsupported or missing time metadata still produces an error.

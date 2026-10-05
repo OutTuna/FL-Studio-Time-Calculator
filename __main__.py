@@ -15,14 +15,6 @@ from filetree import CustomTree
 from flpobject import FLP_Object
 from project_sources import discover_projects
 
-# Local clone of pyflp library used
-import pyflp
-# CHANGES MADE TO LIBRARY
-#   __init__.py 
-#       - Line 131 divided file_size by 2
-#    channel.py 
-#       - Line 279 Commented out
-
 # --------------
 #   Main Window
 # --------------

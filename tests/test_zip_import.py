@@ -35,10 +35,10 @@ class ZipImportTests(unittest.TestCase):
             self.assertEqual(len(sources), 3)
             self.assertEqual(len(errors), 2)
             before = sorted(p.relative_to(root) for p in root.rglob('*'))
-            import pyflp
+            from project_metadata import read_metadata
             for source in sources:
                 with source.open() as stream:
-                    project = pyflp.parse(stream)
+                    project = read_metadata(stream)
                 self.assertEqual(project.time_spent, datetime.timedelta(hours=2.5))
                 self.assertIsNotNone(project.created_on)
             self.assertEqual(before, sorted(p.relative_to(root) for p in root.rglob('*')))

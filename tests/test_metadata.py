@@ -16,15 +16,25 @@ class MetadataTests(unittest.TestCase):
         self.assertEqual(read_metadata(io.BytesIO(flp_bytes())).time_spent,
                          datetime.timedelta(hours=2.5))
 
-    def test_fl26_extended_events(self):
-        version = b'26.1.0.5530\0'
-        events = bytes([199, len(version)]) + version
-        events += b'\xac' + struct.pack('<I', 0xc0000101) + b'\x04test'
-        events += b'\xac' + struct.pack('<I', 256) + b'\x00'
-        events += b'\xed\x10' + struct.pack('<dd', 45000, 2.5 / 24)
-        events += b'\xd5\x03bad'
-        self.assertEqual(read_metadata(io.BytesIO(project(events))).time_spent,
-                         datetime.timedelta(hours=2.5))
+    def test_extended_events(self):
+        for version in (b'25.2.4.5242\0', b'25.2.5.5319\0', b'26.1.0.5530\0'):
+            with self.subTest(version=version):
+                events = bytes([199, len(version)]) + version
+                events += b'\xac' + struct.pack('<I', 0xc0000101) + b'\x04test'
+                events += b'\xac' + struct.pack('<I', 256) + b'\x00'
+                events += b'\xed\x10' + struct.pack('<dd', 45000, 2.5 / 24)
+                events += b'\xd5\x03bad'
+                self.assertEqual(read_metadata(io.BytesIO(project(events))).time_spent,
+                                 datetime.timedelta(hours=2.5))
+
+    def test_legacy_event_172(self):
+        for version in (b'20.0.0\0', b'25.1.0\0'):
+            with self.subTest(version=version):
+                events = bytes([199, len(version)]) + version
+                events += b'\xac' + struct.pack('<I', 123)
+                events += b'\xed\x10' + struct.pack('<dd', 45000, 2.5 / 24)
+                self.assertEqual(read_metadata(io.BytesIO(project(events))).time_spent,
+                                 datetime.timedelta(hours=2.5))
 
     def test_invalid_metadata_and_truncation(self):
         for events in (b'\xed\x10short', b'\xed\x01x',

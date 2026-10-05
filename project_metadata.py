@@ -42,7 +42,7 @@ def read_metadata(stream):
 
     while position < len(data):
         event_id = take(1)[0]
-        if event_id == 172 and version is not None and version >= 26:
+        if event_id == 172 and version is not None and version >= (25, 2):
             take(4)
             size = variable_size()
         elif event_id >= 192:
@@ -51,7 +51,7 @@ def read_metadata(stream):
             size = 1 if event_id < 64 else 2 if event_id < 128 else 4
         value = take(size)
         if event_id == 199:
-            version = int(value.decode('ascii').rstrip('\0').split('.')[0])
+            version = tuple(int(part) for part in value.decode('ascii').rstrip('\0').split('.')[:2])
         elif event_id == 237:
             if len(value) != 16:
                 raise ValueError('Invalid project time metadata')

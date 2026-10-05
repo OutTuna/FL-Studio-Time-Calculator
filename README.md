@@ -47,5 +47,5 @@ Previous releases remain available. Pull request builds only upload artifacts
 and do not publish releases. Artifacts are retained for 30 days.
 
 Project statistics use a metadata-only reader. It supports the extended events
-observed in FL Studio 26.1 and skips plugin, playlist, and text payloads without
+observed in FL Studio 25.2.4, 25.2.5, and 26.1 and skips plugin, playlist, and text payloads without
 decoding them. Unsupported or missing time metadata still produces an error.

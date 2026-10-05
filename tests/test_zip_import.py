@@ -64,6 +64,18 @@ class ZipImportTests(unittest.TestCase):
             window.update_visuals()
             self.assertTrue(all(p.tree_item.treeWidget() is window.filetree.tree for p in window.flp_objects))
             self.assertEqual(window.total_time_hours.text(), '5.00')
+            view = window.plotItem.getViewBox()
+            view.setRange(xRange=(0, 1), yRange=(480, 620), padding=0)
+            window.update_visuals()
+            x_range, y_range = view.viewRange()
+            for item in window.flp_objects:
+                if item.creation_date is not None:
+                    self.assertLessEqual(x_range[0], item.creation_date.timestamp())
+                    self.assertGreaterEqual(x_range[1], item.creation_date.timestamp())
+                    self.assertLessEqual(y_range[0], item.project_hours)
+                    self.assertGreaterEqual(y_range[1], item.project_hours)
+            self.assertLess(view.state['limits']['yLimits'][0], y_range[0])
+            self.assertGreater(view.state['limits']['yLimits'][1], y_range[1])
         window.close()
 
 

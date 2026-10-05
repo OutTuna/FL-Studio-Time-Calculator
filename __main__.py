@@ -276,9 +276,10 @@ class Window(QMainWindow):
         viewBox.setLimits(xMin=-62135596800.0, xMax=253370764800.0,yMin=-1e+307,yMax=1e+307)    # Library defaults
         self.plotItem.plot(x=[x.timestamp() for x in x_nselected],y=y_nselected,pen=None,symbol='o')
         self.plotItem.plot(x=[x.timestamp() for x in x_selected],y=y_selected,pen=None,symbolBrush=pg.mkColor('r'),symbol='o')  # Draw selected second for overlay effect
-        viewBox.updateViewRange()
-        _range = viewBox.viewRange()
-        viewBox.setLimits(xMin=_range[0][0], xMax=_range[0][1],yMin=_range[1][0],yMax=_range[1][1])
+        if y_data:
+            viewBox.autoRange(padding=0.05)
+        else:
+            viewBox.setRange(xRange=(0, 1), yRange=(0, 1), padding=0)
 
     # Fast search of selected root directory and sub-directories
     # Output nexted array in compress filepath form 

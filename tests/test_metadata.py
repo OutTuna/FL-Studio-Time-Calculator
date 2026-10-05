@@ -28,13 +28,24 @@ class MetadataTests(unittest.TestCase):
                                  datetime.timedelta(hours=2.5))
 
     def test_legacy_event_172(self):
-        for version in (b'20.0.0\0', b'25.1.0\0'):
+        for version in (b'12.5.1\0', b'19.0.0\0', b'20.0.0\0', b'20.6.2.1549\0',
+                        b'20.9.2.2963\0', b'21.0.3.3517\0', b'21.2.3.4004\0',
+                        b'24.2.2.4597\0', b'25.1.0\0'):
             with self.subTest(version=version):
                 events = bytes([199, len(version)]) + version
                 events += b'\xac' + struct.pack('<I', 123)
+                events += b'\xc2\x03\xff\x00\xfe'
+                events += b'\x0c\x00' * 600
                 events += b'\xed\x10' + struct.pack('<dd', 45000, 2.5 / 24)
                 self.assertEqual(read_metadata(io.BytesIO(project(events))).time_spent,
                                  datetime.timedelta(hours=2.5))
+
+    def test_zero_time_in_old_project(self):
+        events = b'\xc7\x0719.0.0\0'
+        events += b'\xed\x10' + struct.pack('<dd', 43466, 0)
+        result = read_metadata(io.BytesIO(project(events)))
+        self.assertEqual(result.time_spent, datetime.timedelta(0))
+        self.assertEqual(result.created_on, datetime.datetime(2019, 1, 1))
 
     def test_invalid_metadata_and_truncation(self):
         for events in (b'\xed\x10short', b'\xed\x01x',

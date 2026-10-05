@@ -49,3 +49,9 @@ and do not publish releases. Artifacts are retained for 30 days.
 Project statistics use a metadata-only reader. It supports the extended events
 observed in FL Studio 25.2.4, 25.2.5, and 26.1 and skips plugin, playlist, and text payloads without
 decoding them. Unsupported or missing time metadata still produces an error.
+
+Legacy FLP event framing is retained for FL 19, 20, 21, 24, and 25.1,
+with regression checks including FL 20.6 (2019-era projects). FL Studio 19
+version strings are also covered. These checks use generated FLP fixtures;
+real older projects still need validation. Recorded time must exist in the FLP;
+file dates and sample duration are not used to invent missing work hours.
